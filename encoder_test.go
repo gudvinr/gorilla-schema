@@ -511,3 +511,27 @@ func TestRegisterEncoderWithPtrType(t *testing.T) {
 	valExists(t, "DateStart", ss.DateStart.time.String(), vals)
 	valExists(t, "DateEnd", "", vals)
 }
+
+func TestUnexportedFields(t *testing.T) {
+	type S1 struct {
+		Exported   string `schema:"exported"`
+		unexported string
+	}
+
+	ss := S1{
+		Exported:   "string",
+		unexported: "another string",
+	}
+
+	vals := map[string][]string{}
+
+	encoder := NewEncoder()
+
+	err := encoder.Encode(ss, vals)
+	if err != nil {
+		t.Errorf("Encoder has non-nil error: %v", err)
+	}
+
+	valExists(t, "exported", ss.Exported, vals)
+	valNotExists(t, "unexported", vals)
+}
