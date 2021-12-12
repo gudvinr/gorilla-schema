@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -534,4 +535,35 @@ func TestUnexportedFields(t *testing.T) {
 
 	valExists(t, "exported", ss.Exported, vals)
 	valNotExists(t, "unexported", vals)
+}
+
+func TestSliceSeparatorEncoding(t *testing.T) {
+	type S1 struct {
+		Field     []string `schema:"field"`
+		Space     []string `schema:"space,space"`
+		Comma     []string `schema:"comma,comma"`
+		Semicolon []string `schema:"semicolon,semicolon"`
+	}
+
+	ss := S1{
+		Field:     []string{"field1", "field2"},
+		Space:     []string{"space1", "space2"},
+		Comma:     []string{"comma1", "comma2"},
+		Semicolon: []string{"semicolon1", "semicolon2"},
+	}
+
+	vals := map[string][]string{}
+
+	encoder := NewEncoder()
+
+	err := encoder.Encode(ss, vals)
+	if err != nil {
+		t.Errorf("Encoder has non-nil error: %v", err)
+	}
+
+	valsExist(t, "field", ss.Field, vals)
+
+	valExists(t, "space", strings.Join(ss.Space, " "), vals)
+	valExists(t, "comma", strings.Join(ss.Comma, ","), vals)
+	valExists(t, "semicolon", strings.Join(ss.Semicolon, ";"), vals)
 }
